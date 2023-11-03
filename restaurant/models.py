@@ -23,7 +23,7 @@ class Address(models.Model):
                                          related_name='restaurant_address')
 
 
-class Schedule(models.Model):
+class Interval(models.Model):
     days = (
         ('Segunda', 'Segunda-Feira'),
         ('Terca', 'Terça-Feira'),
@@ -39,6 +39,10 @@ class Schedule(models.Model):
                                                                    message="Incorrect Format hh:mm")])
     close = models.CharField(null=False, validators=[RegexValidator(regex="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
                                                                     message="Incorrect Format hh:mm")])
+
+
+class Schedule(models.Model):
+    interval_id = models.ForeignKey(Interval, on_delete=models.CASCADE, null=False)
     restaurant_id = models.ForeignKey(Restaurant, on_delete=models.CASCADE, null=False, related_name='opening_days')
 
 

@@ -1,4 +1,4 @@
-from .models import Restaurant, Address, Schedule
+from .models import Restaurant, Address, Schedule, Interval
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField, IntegerField
 
 
@@ -19,20 +19,36 @@ class RestaurantSerializer(ModelSerializer):
         fields = ['id', 'name', 'type', 'img']
 
 
+class IntervalSerializer(ModelSerializer):
+
+    class Meta:
+        model = Interval
+        fields = ['id', 'day', 'open', 'close']
+
+
 class ScheduleSerializer(ModelSerializer):
 
     class Meta:
         model = Schedule
-        fields = ['id', 'day', 'open', 'close', 'restaurant_id']
+        fields = ['id', 'interval_id', 'restaurant_id']
         extra_kwargs = {
             'restaurant_id': {'write_only': True}
         }
 
 
+class ScheduleNormalizedSerializer(ModelSerializer):
+
+    interval_id = IntervalSerializer(read_only=True)
+
+    class Meta:
+        model = Schedule
+        fields = ['id', 'interval_id']
+
+
 class RestaurantInformationSerializer(ModelSerializer):
 
     restaurant_address = AddressSerializer(read_only=True)
-    opening_days = ScheduleSerializer(read_only=True, many=True)
+    opening_days = ScheduleNormalizedSerializer(read_only=True, many=True)
 
     class Meta:
         model = Restaurant
