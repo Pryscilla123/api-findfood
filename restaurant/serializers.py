@@ -1,4 +1,4 @@
-from .models import Restaurant, Address, Schedule, Interval
+from .models import Restaurant, Address, Schedule, Interval, Contact
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField, IntegerField
 
 
@@ -28,6 +28,8 @@ class IntervalSerializer(ModelSerializer):
 
 class ScheduleSerializer(ModelSerializer):
 
+    interval_id = IntervalSerializer()
+
     class Meta:
         model = Schedule
         fields = ['id', 'interval_id', 'restaurant_id']
@@ -35,21 +37,46 @@ class ScheduleSerializer(ModelSerializer):
             'restaurant_id': {'write_only': True}
         }
 
+    def create(self, validated_data):
+        interval_id = validated_data.pop('interval_id')
+        interval = self._get_or_create_interval(dict(interval_id))
+        schedule = Schedule.objects.create(interval_id=interval, **validated_data)
+        return schedule
 
-class ScheduleNormalizedSerializer(ModelSerializer):
+    def update(self, instance, validated_data):
+        interval_id = validated_data.pop('interval_id')
+        interval = self._get_or_create_interval(dict(interval_id))
+        instance.interval_id = interval
+        instance.save()
 
-    interval_id = IntervalSerializer(read_only=True)
+        return instance
+
+    @staticmethod
+    def _get_or_create_interval(data):
+        interval_obj = Interval.objects.filter(**data)
+        if not interval_obj:
+            interval = Interval.objects.create(**data)
+        else:
+            interval = list(interval_obj).pop(0)
+        return interval
+
+
+class ContactSerializer(ModelSerializer):
 
     class Meta:
-        model = Schedule
-        fields = ['id', 'interval_id']
+        model = Contact
+        fields = ['type', 'information', 'restaurant_id']
+        extra_kwargs = {
+            'restaurant_id': {'write_only': True}
+        }
 
 
 class RestaurantInformationSerializer(ModelSerializer):
 
     restaurant_address = AddressSerializer(read_only=True)
-    opening_days = ScheduleNormalizedSerializer(read_only=True, many=True)
+    opening_days = ScheduleSerializer(read_only=True, many=True)
+    socials = ContactSerializer(read_only=True, many=True)
 
     class Meta:
         model = Restaurant
-        fields = ['id', 'name', 'type', 'restaurant_address', 'opening_days', 'img']
+        fields = ['id', 'name', 'type', 'restaurant_address', 'opening_days', 'socials', 'img']

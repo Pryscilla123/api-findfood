@@ -57,4 +57,4 @@ class Contact(models.Model):
 
     type = models.CharField(null=False, choices=social, max_length=20)
     information = models.CharField(null=False, max_length=100)
-    restaurant_id = models.ForeignKey(Restaurant, on_delete=models.CASCADE, null=False)
+    restaurant_id = models.ForeignKey(Restaurant, on_delete=models.CASCADE, null=False, related_name='socials')
