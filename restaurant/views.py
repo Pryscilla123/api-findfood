@@ -1,21 +1,27 @@
 from django.shortcuts import render
-from .serializers import RestaurantSerializer, AddressSerializer, RestaurantInformationSerializer, ScheduleSerializer
-from .models import Restaurant, Address, Schedule
+from .serializers import RestaurantSerializer, AddressSerializer, RestaurantInformationSerializer, ScheduleSerializer, \
+    ContactSerializer
+from .models import Restaurant, Address, Schedule, Contact
 from rest_framework import status
-from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, DestroyModelMixin
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.response import Response
 
 
 # Create your views here.
 
 
-class RestaurantViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
+class RestaurantViewSet(ModelViewSet):
     """
     Rota de create, update e delete do Restaurante.
     """
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return RestaurantInformationSerializer
+        return RestaurantSerializer
 
 
 class AddressViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
@@ -32,6 +38,7 @@ class ScheduleViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, Gen
     """
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
+    lookup_field = 'interval_id__day'
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, many=True)
@@ -41,9 +48,17 @@ class ScheduleViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, Gen
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class RestaurantInformationViewSet(ListModelMixin, GenericViewSet):
+class ContactViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
     """
-    Rota das Informações dos Restaurantes.
+    Rota de create, update e delete para as formas de contato do restaurant.
     """
-    queryset = Restaurant.objects.all()
-    serializer_class = RestaurantInformationSerializer
+    queryset = Contact.objects.all()
+    serializer_class = ContactSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
