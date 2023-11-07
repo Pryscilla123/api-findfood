@@ -1,5 +1,7 @@
 from .models import Restaurant, Address, Schedule, Interval, Contact
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, PrimaryKeyRelatedField, IntegerField
+from utils.tools import Days, is_in_the_interval
+from datetime import datetime
 
 
 class AddressSerializer(ModelSerializer):
@@ -76,7 +78,19 @@ class RestaurantInformationSerializer(ModelSerializer):
     restaurant_address = AddressSerializer(read_only=True)
     opening_days = ScheduleSerializer(read_only=True, many=True)
     socials = ContactSerializer(read_only=True, many=True)
+    is_open = SerializerMethodField()
 
     class Meta:
         model = Restaurant
-        fields = ['id', 'name', 'type', 'restaurant_address', 'opening_days', 'socials', 'img']
+        fields = ['id', 'name', 'type', 'restaurant_address', 'opening_days', 'socials', 'img', 'is_open']
+
+    def get_is_open(self, obj):
+        today = datetime.now().strftime('%A').upper()
+        interval = obj.opening_days.filter(interval_id__day=Days[today].value)
+
+        if not interval:
+            return False
+
+        interval_obj = list(interval).pop(0)
+
+        return is_in_the_interval(open=interval_obj.interval_id.open, close=interval_obj.interval_id.close)
