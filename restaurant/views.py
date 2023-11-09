@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from .serializers import RestaurantSerializer, AddressSerializer, RestaurantInformationSerializer, ScheduleSerializer, \
     ContactSerializer
 from .models import Restaurant, Address, Schedule, Contact
@@ -6,7 +5,10 @@ from rest_framework import status
 from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.response import Response
-
+from django_filters.rest_framework import DjangoFilterBackend
+from datetime import datetime
+from django.db.models import Q
+from utils.tools import Days
 
 # Create your views here.
 
@@ -17,9 +19,27 @@ class RestaurantViewSet(ModelViewSet):
     """
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['name', 'type', 'restaurant_address__line1', 'restaurant_address__line2',
+                        'restaurant_address__postal_code']
+
+    def get_queryset(self):
+        queryset = self.queryset
+        is_open = self.request.query_params.get('is_open', None)
+
+        if is_open == 'true':
+            queryset = Restaurant.objects.filter(Q(opening_days__interval_id__open__lte=datetime.now().time()) & Q(
+                opening_days__interval_id__close__gte=datetime.now().time()) & Q(
+                opening_days__interval_id__day__exact=Days[datetime.now().strftime('%A').upper()].value))
+        elif is_open == 'false':
+            queryset = Restaurant.objects.exclude(Q(opening_days__interval_id__open__lte=datetime.now().time()) & Q(
+                opening_days__interval_id__close__gte=datetime.now().time()) & Q(
+                opening_days__interval_id__day__exact=Days[datetime.now().strftime('%A').upper()].value))
+
+        return queryset
 
     def get_serializer_class(self):
-        if self.action == 'list' or self.action == 'retrieve':
+        if self.action in ['list', 'retrieve']:
             return RestaurantInformationSerializer
         return RestaurantSerializer
 
@@ -61,4 +81,3 @@ class ContactViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, Gene
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-

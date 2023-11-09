@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from cloudinary.models import CloudinaryField
+from utils.tools import Days, is_in_the_interval
+from datetime import datetime
 
 
 # Create your models here.
@@ -35,10 +37,8 @@ class Interval(models.Model):
     )
 
     day = models.CharField(null=False, max_length=10, choices=days)
-    open = models.CharField(null=False, validators=[RegexValidator(regex="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
-                                                                   message="Incorrect Format hh:mm")])
-    close = models.CharField(null=False, validators=[RegexValidator(regex="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
-                                                                    message="Incorrect Format hh:mm")])
+    open = models.TimeField(null=False, auto_now=False)
+    close = models.TimeField(null=False, auto_now=False)
 
 
 class Schedule(models.Model):
