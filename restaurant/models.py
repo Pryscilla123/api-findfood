@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.core.validators import RegexValidator
 from cloudinary.models import CloudinaryField
@@ -7,14 +8,23 @@ from datetime import datetime
 
 # Create your models here.
 
+class BaseModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-class Restaurant(models.Model):
+    class Meta:
+        abstract = True
+
+
+
+class Restaurant(BaseModel):
     name = models.CharField(null=False, max_length=100)
     type = models.CharField(null=False, max_length=100)
     img = CloudinaryField('img')
 
 
-class Address(models.Model):
+class Address(BaseModel):
     line1 = models.CharField(null=False, max_length=255)
     line2 = models.CharField(null=False, max_length=255)
     number = models.IntegerField(null=False, unique=True)
@@ -25,7 +35,7 @@ class Address(models.Model):
                                          related_name='restaurant_address')
 
 
-class Interval(models.Model):
+class Interval(BaseModel):
     days = (
         ('Segunda', 'Segunda-Feira'),
         ('Terca', 'Terça-Feira'),
@@ -41,12 +51,12 @@ class Interval(models.Model):
     close = models.TimeField(null=False, auto_now=False)
 
 
-class Schedule(models.Model):
+class Schedule(BaseModel):
     interval_id = models.ForeignKey(Interval, on_delete=models.CASCADE, null=False)
     restaurant_id = models.ForeignKey(Restaurant, on_delete=models.CASCADE, null=False, related_name='opening_days')
 
 
-class Contact(models.Model):
+class Contact(BaseModel):
     social = (
         ('insta', 'Instagram'),
         ('whats', 'Whatsapp'),

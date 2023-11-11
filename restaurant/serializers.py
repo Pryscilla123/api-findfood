@@ -38,13 +38,13 @@ class ScheduleSerializer(ModelSerializer):
 
     def create(self, validated_data):
         interval_id = validated_data.pop('interval_id')
-        interval = self._get_or_create_interval(dict(interval_id))
+        interval, _ = Interval.objects.get_or_create(**interval_id)
         schedule = Schedule.objects.create(interval_id=interval, **validated_data)
         return schedule
 
     def update(self, instance, validated_data):
         interval_id = validated_data.pop('interval_id')
-        interval = self._get_or_create_interval(dict(interval_id))
+        interval, _ = Interval.objects.get_or_create(**interval_id)
         instance.interval_id = interval
         instance.save()
 
