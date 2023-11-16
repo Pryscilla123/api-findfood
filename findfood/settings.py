@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'drf_yasg',
     'django_filters',
+    'rest_framework_simplejwt',
     'restaurant',
 ]
 

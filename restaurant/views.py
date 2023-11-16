@@ -9,6 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from datetime import datetime
 from django.db.models import Q
 from utils.tools import Days
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 # Create your views here.
 
@@ -22,6 +23,7 @@ class RestaurantViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['name', 'type', 'restaurant_address__line1', 'restaurant_address__line2',
                         'restaurant_address__postal_code']
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         queryset = self.queryset
@@ -50,6 +52,7 @@ class AddressViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, Gene
     """
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class ScheduleViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
@@ -59,6 +62,7 @@ class ScheduleViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, Gen
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
     lookup_field = 'interval_id__day'
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, many=True)
@@ -74,6 +78,7 @@ class ContactViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, Gene
     """
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, many=True)
