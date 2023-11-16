@@ -50,15 +50,6 @@ class ScheduleSerializer(ModelSerializer):
 
         return instance
 
-    @staticmethod
-    def _get_or_create_interval(data):
-        interval_obj = Interval.objects.filter(**data)
-        if not interval_obj:
-            interval = Interval.objects.create(**data)
-        else:
-            interval = list(interval_obj).pop(0)
-        return interval
-
 
 class ContactSerializer(ModelSerializer):
     class Meta:
