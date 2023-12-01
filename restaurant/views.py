@@ -61,7 +61,6 @@ class ScheduleViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, Gen
     """
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
-    lookup_field = 'interval_id__day'
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):

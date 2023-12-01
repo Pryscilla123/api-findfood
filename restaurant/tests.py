@@ -170,31 +170,32 @@ def test_schedule_put_request(client, restaurant, schedule, schedule_info):
     restaurant = restaurant('bk', 'fastfood')
     restaurant_id = restaurant.data.get('id')
     schedule = schedule('Quarta', restaurant_id)
+    schedule_data = dict(schedule.data[0])
     schedule_info = schedule_info('Quarta', restaurant_id)[0]
     schedule_info.get('interval_id').update({'open': '10:00'})
-    response = client.put('/restaurant/schedule/Quarta/', schedule_info, format='json')
+    response = client.put(f'/restaurant/schedule/{schedule_data.get("id")}/', schedule_info, format='json')
     assert response.status_code == status.HTTP_200_OK
 
 
-@pytest.mark.skip
 @pytest.mark.django_db
 def test_schedule_patch_request(client, restaurant, schedule):
     restaurant = restaurant('bk', 'fastfood')
     restaurant_id = restaurant.data.get('id')
     schedule = schedule('Quarta', restaurant_id)
-    response = client.patch('/restaurant/schedule/Quarta/',
-                            {'interval_id': {'open': '10:00'}, 'restaurant_id': restaurant_id}, format='json')
+    schedule_data = dict(schedule.data[0])
+    response = client.patch(f'/restaurant/schedule/{schedule_data.get("id")}/',
+                            {'interval_id': {'day': 'Segunda', 'open': '10:00', 'close': '16:00'},
+                             'restaurant_id': restaurant_id}, format='json')
     assert response.status_code == status.HTTP_200_OK
 
 
-@pytest.mark.skip
 @pytest.mark.django_db
 def test_schedule_delete_request(client, restaurant, schedule):
     restaurant_1 = restaurant('bk', 'fastfood')
     schedule_1 = schedule('Quarta', restaurant_1.data.get('id'))
     restaurant_2 = restaurant('bk shakes', 'sorveteria')
     schedule_2 = schedule('Quarta', restaurant_2.data.get('id'))
-    response = client.delete('/restaurant/schedule/Quarta/')
-    response_get_restaurant = client.get('/restaurant/management/')
-    assert response.status_code == status.HTTP_204_NO_CONTENT
-
+    response = client.delete(f'/restaurant/schedule/{dict(schedule_1.data[0]).get("id")}/')
+    response_get_restaurant = client.get(f'/restaurant/management/{restaurant_2.data.get("id")}/')
+    assert response.status_code == status.HTTP_204_NO_CONTENT and dict(
+        response_get_restaurant.data.get('opening_days')[0]).get('interval_id')
