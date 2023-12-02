@@ -54,7 +54,7 @@ class ScheduleSerializer(ModelSerializer):
 class ContactSerializer(ModelSerializer):
     class Meta:
         model = Contact
-        fields = ['type', 'information', 'restaurant_id']
+        fields = ['id', 'type', 'information', 'restaurant_id']
         extra_kwargs = {
             'restaurant_id': {'write_only': True}
         }
